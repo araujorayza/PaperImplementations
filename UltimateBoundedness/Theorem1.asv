@@ -1,8 +1,6 @@
 N = 2; %number of switching systems
 n = 2; %state size
-xv = [5,5]; %abs value of state limits in Z
-
-
+xv = [5,5] %abs value of state 
 
 calP = 1:N; %Set of the switching systems
 calR = cell(1,length(calP)); %calR{p}, number of fuzzy subsystems of every switching system
