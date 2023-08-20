@@ -1,0 +1,86 @@
+% MAIN FILE TO RUN FIGURES 1 AND 2 FROM EXAMPLE 1
+% -------------------------------------------------------------------
+% Clearing memory
+close all;
+clear all;
+clc;
+% Local Models of the Fuzzy Subsystems
+ri=2; % Number of local models of the subsystems
+Ns=2; % Number of subsystems
+A = cell(Ns,ri);
+A{1,1}=[1 0;0 1];
+A{1,2}=[-10 0;0 1];
+A{2,2}=[-10 -15;0 -3];
+% System parameters
+be=1; % be=beta is a fixed value of \mathcal P
+alfa=[0.6 0.4]; % \alpha=[\alpha_1 \alpha_2]
+eps=100; % \epsilon
+xv=5; % \x_{\eta}
+l=0.2; % l= \ell is a real a number defined by designer
+mu=.19;  % \mu
+b=((5*sqrt(2)));  % b is a real number satisfying |x|\leq b
+b1=2; % b1 is a real number satisfying max_{x\in X}[\sum_{p\in P}\sum_{k\in Gp}h_{pk}]
+b2=2;  % b2 is a real number satisfying max_{x\in X}>=(r_p(\sum_{p\in P}\sum_{k\in G_p}h_{pk})+N)
+% Calculating the membership function values on the boundary of set Z
+h12=(xv^2)/50; h11=1-h12;
+h21=0;         h22=1-h21;
+fi1=1;
+fi2=2;
+% Values used in the grid of Figure 1
+alim=[20 35];  % Values for a1
+blim=[-10 -5]; % Values for a2
+         e=[]; e1=[];
+         f=[]; f1=[];
+         c=[]; c1=[];
+         d=[]; d1=[];
+figure(1)
+hold on;
+for a1=alim(1):(alim(2)-alim(1))/10:alim(2),
+    for a2=blim(1):(blim(2)-blim(1))/10:blim(2),
+        A{2,1}=[-10 a1;0 a2];      
+        %%     Solving LMIs of Valentino et al (2018) (Valentino2018)
+                P = lmi_Valentino2018(A,alfa,xv,be,mu,Ns);
+        if ~isempty(P)
+              plot(a1,a2,'ks','MarkerSize',9)
+        end
+    
+%% Solving LMIs of Theorem 1 (eps=100)
+        P = Example1_LMI_Theorem1(A,alfa,xv,b,eps,b1,l,mu,be);
+        if ~isempty(P)
+             plot(a1,a2,'kx','MarkerSize',9)
+               celldisp(P)
+               e=[e P{1,2}(1,1)];
+               f=[f P{1,2}(1,2)];
+               c=[c P{1,2}(2,1)];
+               d=[d P{1,2}(2,2)];
+               e1=[e1 P{2,1}(1,1)];
+               f1=[f1 P{2,1}(1,2)];
+               c1=[c1 P{2,1}(2,1)];
+               d1=[d1 P{2,1}(2,2)];
+        end
+    end
+end
+
+%% Finding region A presented in Figure 2 and the maximum value that all functions V assume in A
+ X=[];
+ Y=[];
+ V1=[];
+ V=[];
+  for i=1:1:121
+        for x=-5:0.1:5
+                    for y=-5:0.1:5
+                        V=[x y]*(((x*(0.6*(x/50)*(-6*x^2-6*y^2+50)+0.4*(-10*x+1.2*y^3-15*y))+y*(0.6*y-3*0.4*y))/25)*[e(i) f(i);c(i) d(i)]+(0.08*y*(0.6*y-3*0.4*y))*[e1(i) f1(i);c1(i) d1(i)])*[x y]';
+                         if V>=0
+                             X=[X x];
+                             Y=[Y y];
+                             V1=[V1 V];
+                         end
+                     end
+         end
+ end
+ 
+  figure(2)
+  hold on;
+  plot(X,Y,'.')
+  
+  max(V1)
